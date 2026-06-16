@@ -6,7 +6,7 @@ description: >-
   (indexes, EXPLAIN ANALYZE, N+1 removal). Use PROACTIVELY for work touching
   schema.prisma, litellm/proxy/db/, or spend-logging hot paths. Returns the
   schema/query changes and their performance rationale.
-tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__jet_brains_get_symbols_overview, mcp__serena__jet_brains_find_symbol, mcp__serena__jet_brains_find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
+tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
 model: sonnet
 ---
 
@@ -32,7 +32,7 @@ How you work:
 - Do not assume the existing schema/queries are optimal; flag smells.
 - For navigating and editing the Python DB layer, prefer Serena's symbol tools:
   call `mcp__serena__initial_instructions` once, then
-  `jet_brains_find_symbol`/`jet_brains_get_symbols_overview`/`jet_brains_find_referencing_symbols`
+  `find_symbol`/`get_symbols_overview`/`find_referencing_symbols`
   and `replace_symbol_body`/`insert_after_symbol`/`insert_before_symbol`/`replace_content`.
   Fall back to Read/Grep/Edit for `schema.prisma` and other non-symbol files.
 

@@ -5,7 +5,7 @@ description: >-
   tests. Use PROACTIVELY after a feature or bug fix lands, or when a test is
   flaky/failing. Targets pytest suites under tests/test_litellm/ and
   tests/proxy_unit_tests/. Returns the tests it added and their results.
-tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__jet_brains_get_symbols_overview, mcp__serena__jet_brains_find_symbol, mcp__serena__jet_brains_find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
+tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
 model: sonnet
 ---
 
@@ -33,8 +33,8 @@ How you build them:
 - Reuse existing fixtures and patterns; search before adding new scaffolding.
 - To understand the code under test, prefer Serena's symbol tools: call
   `mcp__serena__initial_instructions` once, then
-  `jet_brains_find_symbol`/`jet_brains_get_symbols_overview` to read the target
-  and `jet_brains_find_referencing_symbols` to find existing callers and fixtures
+  `find_symbol`/`get_symbols_overview` to read the target
+  and `find_referencing_symbols` to find existing callers and fixtures
   to reuse. Fall back to Read/Grep when symbol-level tools do not fit.
 - Keep tests simple and readable; no speculative parametrization.
 - When real LLM calls are warranted (e2e), use current, modern provider models

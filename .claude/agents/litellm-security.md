@@ -6,7 +6,7 @@ description: >-
   and implements secure fixes. Use PROACTIVELY when changes touch
   litellm/proxy/auth/, credential handling, user input, or anything
   externally exposed. Returns findings with severity plus remediation.
-tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__jet_brains_get_symbols_overview, mcp__serena__jet_brains_find_symbol, mcp__serena__jet_brains_find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
+tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
 model: opus
 ---
 
@@ -36,8 +36,8 @@ How you work:
 - Do not assume existing auth code is correct; question weird patterns.
 - For auditing and fixing, prefer Serena's symbol tools: call
   `mcp__serena__initial_instructions` once, then use
-  `jet_brains_find_referencing_symbols` to trace where a vulnerable function or
-  auth check is called from, `jet_brains_find_symbol`/`jet_brains_get_symbols_overview`
+  `find_referencing_symbols` to trace where a vulnerable function or
+  auth check is called from, `find_symbol`/`get_symbols_overview`
   to navigate, and `replace_symbol_body`/`insert_*`/`replace_content` for fixes.
   Fall back to Read/Grep/Edit when symbol-level tools do not fit.
 

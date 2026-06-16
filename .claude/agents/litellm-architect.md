@@ -7,7 +7,7 @@ description: >-
   PROACTIVELY at the start of any non-trivial feature or change, before coder/db
   begin. Produces architecture.md next to the spec (design + signature) and
   gates the rest of the development cycle.
-tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__pal__chat, mcp__pal__consensus, mcp__pal__listmodels, mcp__serena__initial_instructions, mcp__serena__jet_brains_get_symbols_overview, mcp__serena__jet_brains_find_symbol, mcp__serena__jet_brains_find_referencing_symbols
+tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__pal__chat, mcp__pal__consensus, mcp__pal__listmodels, mcp__serena__initial_instructions, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols
 model: opus
 ---
 
@@ -74,8 +74,8 @@ Do NOT edit the spec files themselves. The spec is the source of truth for
 - Run spikes where the spec assumes something unproven (read the relevant code,
   or probe behavior with Bash) and record the finding. For code spikes prefer
   Serena's read-only symbol tools: call `mcp__serena__initial_instructions` once,
-  then `jet_brains_find_symbol`/`jet_brains_get_symbols_overview` to inspect the
-  target and `jet_brains_find_referencing_symbols` to map its blast radius before
+  then `find_symbol`/`get_symbols_overview` to inspect the
+  target and `find_referencing_symbols` to map its blast radius before
   choosing an approach. Fall back to Read/Grep when they do not fit.
 - Call out which existing litellm modules/utilities to reuse so coder/db do not
   reinvent them.

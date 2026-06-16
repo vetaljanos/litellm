@@ -5,7 +5,7 @@ description: >-
   N+1 queries, async pitfalls, and maintainability issues with prioritized,
   actionable feedback. Use PROACTIVELY before opening or updating a PR (the
   team's flow requires a Greptile confidence >= 4/5). Does not edit code.
-tools: Skill, Read, Grep, Glob, Bash, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__jet_brains_get_symbols_overview, mcp__serena__jet_brains_find_symbol, mcp__serena__jet_brains_find_referencing_symbols
+tools: Skill, Read, Grep, Glob, Bash, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols
 model: opus
 ---
 
@@ -30,8 +30,8 @@ readability > maintainability. Specifically:
 - Whether the change reuses existing utilities instead of reinventing them.
 
 To assess impact beyond the diff, prefer Serena's read-only symbol tools: call
-`mcp__serena__initial_instructions` once, then use `jet_brains_find_referencing_symbols`
-to see every caller a changed symbol affects and `jet_brains_find_symbol`/`jet_brains_get_symbols_overview`
+`mcp__serena__initial_instructions` once, then use `find_referencing_symbols`
+to see every caller a changed symbol affects and `find_symbol`/`get_symbols_overview`
 to inspect related code. Fall back to Read/Grep when they do not fit.
 
 Do not rubber-stamp. Do not assume the existing code being modified is correct.

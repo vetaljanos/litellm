@@ -5,7 +5,7 @@ description: >-
   litellm/, FastAPI gateway in litellm/proxy/). Use PROACTIVELY for any
   non-trivial coding task that touches provider transformations, routing, proxy
   endpoints, hooks, or auth logic. Returns the diff it made plus a short summary.
-tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__jet_brains_get_symbols_overview, mcp__serena__jet_brains_find_symbol, mcp__serena__jet_brains_find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
+tools: Skill, Read, Grep, Glob, Bash, Write, Edit, WebSearch, WebFetch, mcp__serena__initial_instructions, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_content
 model: opus
 ---
 
@@ -37,7 +37,7 @@ How you write code:
   reuse (Grep/Glob).
 - For navigation and edits, prefer Serena's symbol tools: call
   `mcp__serena__initial_instructions` once at the start, then use
-  `jet_brains_find_symbol`/`jet_brains_get_symbols_overview`/`jet_brains_find_referencing_symbols`
+  `find_symbol`/`get_symbols_overview`/`find_referencing_symbols`
   to navigate and `replace_symbol_body`/`insert_after_symbol`/`insert_before_symbol`/`replace_content`
   to change code. Fall back to Read/Grep/Edit when symbol-level tools do not fit.
 
