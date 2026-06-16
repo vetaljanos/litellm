@@ -6,11 +6,11 @@ design and the signature manifest. It does not modify the spec.
 
 ## Signature
 
-- spec_path: specs/system-instructions-responses-api.spec.md
+- spec_path: specs/system-instructions-responses-api/system-instructions-responses-api.spec.md
 - algorithm: sha256 (shasum -a 256), architecture.md excluded
 - files:
   - system-instructions-responses-api.spec.md: a40d246ae64d703b023d53cb2140eab7e42d0e1dbfaef76354d087026ada9137
-- combined: bae2686c283e6c8f403c3d6370d42aec76509c58a8c054f4f2d5dc7249610e13
+- combined: 524f5d72e4d3f6ee68275182b5a4c335a8ad9d453caa0766bf60a642782a7f82
 
 Re-verify with:
 
