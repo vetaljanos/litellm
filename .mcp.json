@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "serena",
+      "args": [
+        "start-mcp-server",
+        "--project-from-cwd",
+        "--context",
+        "claude-code",
+        "--open-web-dashboard",
+        "false"
+      ]
+    },
+    "pal": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "cd \"$PAL_MCP_DIR\" && exec ./.pal_venv/bin/python ./server.py"
+      ],
+      "env": {
+        "PAL_MCP_DIR": "/Users/rvs/ai/pal-mcp-server",
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:${HOME}/.local/bin"
+      },
+      "timeout": 600000
+    }
+  }
+}
