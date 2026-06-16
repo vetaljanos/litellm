@@ -595,7 +595,7 @@ class TestNomaGuardrailHooks:
             assert messages[0]["content"][0]["type"] == "input_text"
             assert (
                 messages[0]["content"][0]["text"]
-                == "You are a helpful assistant You should be polite and respectful"
+                == "You are a helpful assistant\n\nYou should be polite and respectful"
             )
 
             # Second message should be user

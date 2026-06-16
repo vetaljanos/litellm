@@ -2783,3 +2783,218 @@ def test_reasoning_items_streaming_emitted_on_response_completed():
         ri["encrypted_content"] == encrypted
     ), "encrypted_content must be preserved in streaming"
     assert ri["summary"][0]["text"] == summary_text
+
+
+# =============================================================================
+# Regression tests: system-message -> instructions folding (NFR-5)
+# =============================================================================
+
+
+def _make_handler():
+    from litellm.completion_extras.litellm_responses_transformation.transformation import (
+        LiteLLMResponsesTransformationHandler,
+    )
+
+    return LiteLLMResponsesTransformationHandler()
+
+
+def test_ac1_list_system_single_text_block_goes_to_instructions_not_input():
+    """AC-1: list-form system with one text block -> instructions equals that text;
+    no item in input_items has role 'system'."""
+    handler = _make_handler()
+    messages = [
+        {"role": "system", "content": [{"type": "text", "text": "Be concise."}]},
+        {"role": "user", "content": "Hello"},
+    ]
+    input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(messages)
+
+    assert instructions == "Be concise."
+    assert all(item.get("role") != "system" for item in input_items), (
+        "No input item should have role='system' after folding"
+    )
+
+
+def test_ac2_list_system_multiple_text_blocks_joined_with_double_newline():
+    """AC-2: list-form system with two text blocks -> instructions == 'A\\n\\nB';
+    no system element in input_items."""
+    handler = _make_handler()
+    messages = [
+        {
+            "role": "system",
+            "content": [
+                {"type": "text", "text": "A"},
+                {"type": "text", "text": "B"},
+            ],
+        },
+        {"role": "user", "content": "Hi"},
+    ]
+    input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(messages)
+
+    assert instructions == "A\n\nB", (
+        f"Expected 'A\\n\\nB' but got {instructions!r}; "
+        "changing separator from '\\n\\n' to space would break this"
+    )
+    assert all(item.get("role") != "system" for item in input_items)
+
+
+def test_ac3_list_system_non_text_block_dropped_with_warning():
+    """AC-3: list-form system with an image block followed by a text block -> instructions == text only;
+    verbose_logger.warning is called and mentions the dropped type."""
+    import logging
+    from unittest.mock import patch
+
+    handler = _make_handler()
+    messages = [
+        {
+            "role": "system",
+            "content": [
+                {"type": "image", "source": {"url": "https://example.com/img.png"}},
+                {"type": "text", "text": "X"},
+            ],
+        },
+        {"role": "user", "content": "ok"},
+    ]
+
+    with patch(
+        "litellm.completion_extras.litellm_responses_transformation.transformation.verbose_logger"
+    ) as mock_logger:
+        input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(messages)
+
+    assert instructions == "X"
+    assert all(item.get("role") != "system" for item in input_items)
+
+    mock_logger.warning.assert_called_once()
+    warning_text = mock_logger.warning.call_args[0][0]
+    assert "image" in warning_text, (
+        f"Warning should mention the dropped type 'image', got: {warning_text!r}"
+    )
+
+
+def test_ac4_string_system_goes_to_instructions_not_input():
+    """AC-4: string-form system message -> instructions equals that string;
+    no system element in input_items."""
+    handler = _make_handler()
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Hello"},
+    ]
+    input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(messages)
+
+    assert instructions == "You are a helpful assistant."
+    assert all(item.get("role") != "system" for item in input_items)
+
+
+def test_ac5_two_system_messages_joined_string_then_list():
+    """AC-5: string system 'A' followed by list-form system [{type:text,text:'B'}]
+    -> instructions == 'A\\n\\nB'; no system element in input_items."""
+    handler = _make_handler()
+    messages = [
+        {"role": "system", "content": "A"},
+        {"role": "system", "content": [{"type": "text", "text": "B"}]},
+        {"role": "user", "content": "Go"},
+    ]
+    input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(messages)
+
+    assert instructions == "A\n\nB", (
+        f"Expected 'A\\n\\nB' but got {instructions!r}; "
+        "changing separator from '\\n\\n' to space would break this"
+    )
+    assert all(item.get("role") != "system" for item in input_items)
+
+
+def test_ac6_list_system_without_text_blocks_yields_none_instructions():
+    """AC-6a: empty system content list -> instructions is None; no system element.
+    AC-6b: list with only non-text blocks -> instructions is None; no system element."""
+    handler = _make_handler()
+    from unittest.mock import patch
+
+    # AC-6a: empty list
+    messages_empty = [
+        {"role": "system", "content": []},
+        {"role": "user", "content": "hi"},
+    ]
+    input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(messages_empty)
+    assert instructions is None, f"Expected None for empty content list, got {instructions!r}"
+    assert all(item.get("role") != "system" for item in input_items)
+
+    # AC-6b: only non-text blocks
+    messages_non_text = [
+        {
+            "role": "system",
+            "content": [
+                {"type": "image", "source": {"url": "https://example.com/x.png"}},
+            ],
+        },
+        {"role": "user", "content": "hi"},
+    ]
+    with patch(
+        "litellm.completion_extras.litellm_responses_transformation.transformation.verbose_logger"
+    ):
+        input_items2, instructions2 = handler.convert_chat_completion_messages_to_responses_api(messages_non_text)
+
+    assert instructions2 is None, (
+        f"Expected None when no text blocks present, got {instructions2!r}"
+    )
+    assert all(item.get("role") != "system" for item in input_items2)
+
+
+def test_ac7_non_system_messages_unchanged_snapshot():
+    """AC-7 (regression): a conversation with user, assistant, assistant-with-tool-calls
+    and tool messages produces input_items identical to the expected snapshot,
+    confirming only the system branch was touched."""
+    handler = _make_handler()
+    messages = [
+        {"role": "user", "content": "What is the weather in Tokyo?"},
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "call_tok001",
+                    "type": "function",
+                    "function": {
+                        "name": "get_weather",
+                        "arguments": '{"city": "Tokyo"}',
+                    },
+                }
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "call_tok001",
+            "content": "18°C, partly cloudy",
+        },
+        {"role": "assistant", "content": "It is 18°C and partly cloudy in Tokyo."},
+    ]
+
+    input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(messages)
+
+    assert instructions is None
+
+    expected_input_items = [
+        {
+            "type": "message",
+            "role": "user",
+            "content": [{"type": "input_text", "text": "What is the weather in Tokyo?"}],
+        },
+        {
+            "type": "function_call",
+            "call_id": "call_tok001",
+            "name": "get_weather",
+            "arguments": '{"city": "Tokyo"}',
+        },
+        {
+            "type": "function_call_output",
+            "call_id": "call_tok001",
+            "output": [{"type": "input_text", "text": "18°C, partly cloudy"}],
+        },
+        {
+            "type": "message",
+            "role": "assistant",
+            "content": [{"type": "output_text", "text": "It is 18°C and partly cloudy in Tokyo."}],
+        },
+    ]
+
+    assert input_items == expected_input_items, (
+        "Non-system messages must not be affected by the system-folding change"
+    )

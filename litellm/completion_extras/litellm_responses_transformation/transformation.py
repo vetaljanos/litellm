@@ -219,6 +219,27 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
         # Unknown or unsupported type
         return None, index
 
+    def _extract_system_instruction_text(self, content: Any) -> str:
+        if isinstance(content, str):
+            return content
+        if not isinstance(content, list):
+            return ""
+        texts: List[str] = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                texts.append(block.get("text", ""))
+            else:
+                block_type = (
+                    block.get("type")
+                    if isinstance(block, dict)
+                    else type(block).__name__
+                )
+                verbose_logger.warning(
+                    "litellm responses transformation: dropping non-text system "
+                    f"content block of type {block_type!r} from instructions"
+                )
+        return "\n\n".join(t for t in texts if t)
+
     def convert_chat_completion_messages_to_responses_api(
         self, messages: List["AllMessageValues"]
     ) -> Tuple[List[Any], Optional[str]]:
@@ -232,25 +253,14 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
             tool_call_id = msg.get("tool_call_id")
 
             if role == "system":
-                # Extract system message as instructions
-                if isinstance(content, str):
-                    if instructions:
-                        # Concatenate multiple system prompts with a space
-                        instructions = f"{instructions} {content}"
-                    else:
-                        instructions = content
-                else:
-                    input_items.append(
-                        {
-                            "type": "message",
-                            "role": role,
-                            "content": self._convert_content_to_responses_format(
-                                content,  # type: ignore[arg-type]
-                                role,  # type: ignore
-                            ),
-                        }
+                extracted = self._extract_system_instruction_text(content)
+                if extracted:
+                    instructions = (
+                        f"{instructions}\n\n{extracted}" if instructions else extracted
                     )
-            elif role == "tool":
+                continue
+
+            if role == "tool":
                 # Convert tool message to function call output format
                 # The Responses API expects 'output' to be a list with input_text/input_image types
                 # Using list format for consistency across text and multimodal content
